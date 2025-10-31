@@ -544,18 +544,18 @@ from flask_cors import CORS
 import sqlite3
 from transformers import pipeline
 import hashlib
-
+import os
 # ------------------- APP SETUP -------------------
 app = Flask(__name__)
 CORS(app)
 DATABASE = 'contacts.db'
 
-# Load Emotion Model
-emotion_classifier = pipeline(
-    "text-classification",
-    model="j-hartmann/emotion-english-distilroberta-base",
-    return_all_scores=True
-)
+# # Load Emotion Model
+# emotion_classifier = pipeline(
+#     "text-classification",
+#     model="j-hartmann/emotion-english-distilroberta-base",
+#     return_all_scores=True
+# )
 
 # ------------------- DATABASE INIT -------------------
 def init_db():
@@ -606,6 +606,20 @@ def init_db():
 # ------------------- UTILITIES -------------------
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
+
+# Lazy-load the Transformers model
+emotion_classifier = None
+
+def get_emotion_classifier():
+    global emotion_classifier
+    if emotion_classifier is None:
+        from transformers import pipeline
+        emotion_classifier = pipeline(
+            "text-classification",
+            model="j-hartmann/emotion-english-distilroberta-base",
+            return_all_scores=True
+        )
+    return emotion_classifier
 
 def predict_emotion(text):
     if not text or not text.strip():
@@ -830,11 +844,9 @@ def combined_emotion_count():
     return jsonify([{'emotion': r[0], 'count': r[1]} for r in rows])
 
 # ------------------- RUN APP -------------------
-import os
-init_db()
+
 if __name__ == '__main__':
-    
+    init_db()
     port = int(os.environ.get("PORT", 5000))  # Render provides PORT
-    
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port)
 
