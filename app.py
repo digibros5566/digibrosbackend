@@ -830,9 +830,11 @@ def combined_emotion_count():
     return jsonify([{'emotion': r[0], 'count': r[1]} for r in rows])
 
 # ------------------- RUN APP -------------------
+import os
+init_db()
 if __name__ == '__main__':
-    import os
+    
     port = int(os.environ.get("PORT", 5000))  # Render provides PORT
-    init_db()
+    
     app.run(host='0.0.0.0', port=port, debug=False)
 
