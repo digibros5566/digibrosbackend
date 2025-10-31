@@ -691,15 +691,19 @@ def list_users():
 # ------------------- CONTACT ROUTES -------------------
 @app.route('/api/contacts', methods=['POST'])
 def create_contact():
-    data = request.get_json()
+    data = request.get_json(force=True)   #-------newly added
     name, email = data.get('name'), data.get('email')
     interest = data.get('service') or data.get('interest')
-    message = data.get('message')
+    message = data.get('message') or ""
 
     if not name or not email:
         return jsonify({'error': 'Name and Email are required'}), 400
 
-    emotion = predict_emotion(message)
+    #-------newly added
+    try:
+        emotion = predict_emotion(message)
+    except Exception as e:
+        emotion = "neutral"
 
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
